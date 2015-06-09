@@ -1,6 +1,6 @@
 #'Work in progress
 #'
-#' ek gebruik die fil net om die structure van die data te verstaan :P
+#' ek gebruik die file net om die structure van die data te verstaan :P
 #'
 #'
 
