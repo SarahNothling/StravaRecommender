@@ -15,7 +15,7 @@ packages <- c(
 for (i in 1:length(packages)) {
   if !(packages[i] %in% installed.packages()) install.packages(packages[i]) 
 }
-require(ggplot2); require(plyr); require(XML); require(ggmap); require(ifelse)
+require(ggplot2); require(plyr); require(XML); require(ggmap);
 
 #custom functions====
 #strip <shit>
@@ -73,6 +73,7 @@ tp <- list()
 
 for (i in 1:length(track.point.start)) {
   tp[[i]] <- GR[track.point.start[i]:track.point.end[i]] 
+  print(c(floor(i/100)*100,length(track.point.start)))
 }
 event <- data.frame()
 for (i in 1:length(tp)) {
@@ -86,7 +87,7 @@ event[i,4] <- if(length(tp[[i]][which(as.character(gregexpr("<AltitudeMeters>",t
   remove.html(strip.white(tp[[i]][which(as.character(gregexpr("<AltitudeMeters>",tp[[i]])) != -1)]))
 event[i,5] <- if(length(tp[[i]][which(as.character(gregexpr("<DistanceMeters>",tp[[i]])) != -1)]) == 0) NA else 
   remove.html(strip.white(tp[[i]][which(as.character(gregexpr("<DistanceMeters>",tp[[i]])) != -1)]))
-print(i)
+print(c(floor(i/100)*100,length(tp)))
 }
 
 colnames(event) <- c("Time", "Lat", "Lon", "Alt", "Dist")
@@ -98,12 +99,37 @@ event$Dist <- as.numeric(event$Dist)
 event$Time <- strptime(event$Time, format = "%Y-%m-%dT%H:%M:%SZ", tz = "GMT")
 
 
-a <- ggplot(event) + geom_line(aes(x = Time, y = Alt, col = Alt), lwd=2)
+a <- ggplot(event) + geom_line(aes(x = Time, y = Alt, col = Alt))
 
 mean.lon <- mean(range(event$Lon[!is.na(event$Lon)]))
 mean.lat <- mean(range(event$Lat[!is.na(event$Lat)]))
 
 event.map <- get_googlemap(center = c(lon = mean.lon, lat = mean.lat), zoom = 10)
-b <- ggmap(event.map) + geom_line(data = event, aes(x = Lon, y = Lat, col = Alt), lwd = 2)
+b <- ggmap(event.map) + geom_line(data = event, aes(x = Lon, y = Lat, col = delta.alt), lwd = 2)
 
-multiplot(a,b)
+c <- ggplot(event) + geom_line(aes(x = Time, y = delta.alt, col = delta.alt))
+
+multiplot(a,c)
+
+for (i in 1:(nrow(event)-1)) {
+  event$delta.alt[i] <- event$Alt[i+1]-event$Alt[i]
+ 
+}
+event$delta.alt[nrow(event)] <- event$delta.alt[nrow(event)-1]
+e
+
+
+
+
+
+
+
+
+
+as.POSIXlt.numeric(event$Time)
+
+
+
+
+
+
