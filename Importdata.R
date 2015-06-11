@@ -9,7 +9,7 @@
 packages <- c(
   "ggplot2",
   "plyr",
-  "XML"
+  "XML",
   "ggmap"
   )
 for (i in 1:length(packages)) {
@@ -98,8 +98,26 @@ event$Alt <- as.numeric(event$Alt)
 event$Dist <- as.numeric(event$Dist)
 event$Time <- strptime(event$Time, format = "%Y-%m-%dT%H:%M:%SZ", tz = "GMT")
 
+# subsetting the data
 
-a <- ggplot(event) + geom_line(aes(x = Time, y = Alt, col = Alt))
+freq <- 5 # ie every 5th second
+event.ss <- event[which(as.numeric(event$Time) %% freq == as.numeric(event$Time[1]) %% freq),]
+for (i in 1:(nrow(event.ss)-1)) {
+  event.ss$delta.alt[i] <- event.ss$Alt[i+1]-event.ss$Alt[i]
+  
+}
+
+event.ss$delta.alt[nrow(event.ss)] <- event.ss$delta.alt[nrow(event.ss)-1]
+
+# removes NAs
+event.ss <- event.ss[-which(is.na(event.ss$delta.alt)),] 
+
+
+
+
+# plotting====
+
+a <- ggplot(event.ss) + geom_line(aes(x = Time, y = Alt, col = Alt))
 
 mean.lon <- mean(range(event$Lon[!is.na(event$Lon)]))
 mean.lat <- mean(range(event$Lat[!is.na(event$Lat)]))
@@ -107,29 +125,9 @@ mean.lat <- mean(range(event$Lat[!is.na(event$Lat)]))
 event.map <- get_googlemap(center = c(lon = mean.lon, lat = mean.lat), zoom = 10)
 b <- ggmap(event.map) + geom_line(data = event, aes(x = Lon, y = Lat, col = delta.alt), lwd = 2)
 
-c <- ggplot(event) + geom_line(aes(x = Time, y = delta.alt, col = delta.alt))
+c <- ggplot(event.ss) + geom_line(aes(x = Time, y = delta.alt, col = delta.alt))
 
 multiplot(a,c)
-
-for (i in 1:(nrow(event)-1)) {
-  event$delta.alt[i] <- event$Alt[i+1]-event$Alt[i]
- 
-}
-event$delta.alt[nrow(event)] <- event$delta.alt[nrow(event)-1]
-e
-
-
-
-
-
-
-
-
-
-as.POSIXlt.numeric(event$Time)
-
-
-
 
 
 
